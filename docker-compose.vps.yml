@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   skanderbeg-gateway:
     image: ghcr.io/phinfire/skanderbeg-gateway:latest
@@ -5,9 +7,9 @@ services:
     restart: always
     environment:
       BASE_API_URL: ${BASE_API_URL:-http://skanderbeg.pm/api.php}
-      API_PORT: ${API_PORT:-8000}
+      API_PORT: ${API_PORT:-8085}
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "${API_PORT:-8085}:8000"
     volumes:
       - cache_volume:/app/cache
     env_file:

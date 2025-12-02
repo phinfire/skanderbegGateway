@@ -40,7 +40,7 @@ jobs:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
-        source: "./docker-compose.yml"
+        source: "./docker-compose.vps.yml"
         target: "/opt/skanderbeg-gateway/"
 
     - name: Deploy on VPS over SSH
@@ -52,6 +52,9 @@ jobs:
         script: |
           mkdir -p /opt/skanderbeg-gateway
           cd /opt/skanderbeg-gateway
+          
+          # Rename the VPS compose file
+          mv docker-compose.vps.yml docker-compose.yml
           
           # Create .env if it doesn't exist
           if [ ! -f .env ]; then
