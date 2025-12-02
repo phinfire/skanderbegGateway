@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
@@ -57,7 +57,7 @@ jobs:
           if [ ! -f .env ]; then
             cat > .env << EOF
           BASE_API_URL=http://skanderbeg.pm/api.php
-          API_PORT=8000
+          API_PORT=8085
           EOF
           fi
           

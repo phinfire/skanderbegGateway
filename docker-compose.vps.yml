@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   skanderbeg-gateway:
     image: ghcr.io/phinfire/skanderbeg-gateway:latest
