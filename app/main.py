@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, Query
-from starlette.middleware.gzip import GZIPMiddleware
 import os
 import hashlib
 import json
@@ -13,8 +12,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Skanderbeg API Gateway with Caching")
-
-app.add_middleware(GZIPMiddleware, minimum_size=1000)
 
 
 BASE_API_URL = os.getenv("BASE_API_URL", "http://skanderbeg.pm/api.php")
