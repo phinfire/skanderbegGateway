@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.gzip import GZIPMiddleware
 import os
 import hashlib
 import json
@@ -8,22 +9,21 @@ from datetime import datetime
 import requests
 from pathlib import Path
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Skanderbeg API Gateway with Caching")
 
-# Configuration
+app.add_middleware(GZIPMiddleware, minimum_size=1000)
+
+
 BASE_API_URL = os.getenv("BASE_API_URL", "http://skanderbeg.pm/api.php")
 CACHE_DIR = Path(os.getenv("CACHE_DIR", "./cache"))
 
-# Ensure cache directory exists
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 logger.info(f"Cache directory: {CACHE_DIR}")
 logger.info(f"Base API URL: {BASE_API_URL}")
-
 
 def get_cache_path(query_params: str) -> Path:
     """Generate cache file path from query parameters."""
@@ -45,7 +45,6 @@ def get_from_cache(query_params: str) -> Optional[dict]:
             return None
     return None
 
-
 def save_to_cache(query_params: str, data: dict) -> None:
     """Save data to persistent cache."""
     cache_path = get_cache_path(query_params)
@@ -55,7 +54,6 @@ def save_to_cache(query_params: str, data: dict) -> None:
             logger.info(f"Cached data for: {query_params}")
     except Exception as e:
         logger.error(f"Error writing cache: {e}")
-
 
 @app.get("/health")
 async def health_check():
@@ -103,7 +101,11 @@ async def get_save_data_dump(save: str = Query(..., description="Save ID"), type
 
         api_data = response.json()
 
-        # Save to persistent cache
+        # Check if response is too small (likely an error)
+        if isinstance(api_data, str) and len(api_data) < 100:
+            logger.warning(f"API returned suspiciously small response for save={save}: {api_data}")
+            return api_data
+
         cache_entry = {
             "data": api_data,
             "timestamp": datetime.utcnow().isoformat(),
