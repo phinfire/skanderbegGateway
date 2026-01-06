@@ -8,10 +8,18 @@ from datetime import datetime
 import requests
 from pathlib import Path
 
+from .savefiles import router as savefiles_router, init_db
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Skanderbeg API Gateway with Caching")
+
+# Initialize database
+init_db()
+
+# Include savefiles router
+app.include_router(savefiles_router, prefix="/api")
 
 
 BASE_API_URL = os.getenv("BASE_API_URL", "http://skanderbeg.pm/api.php")

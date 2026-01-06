@@ -56,13 +56,13 @@ jobs:
           # Rename the VPS compose file
           mv docker-compose.vps.yml docker-compose.yml
           
-          # Create .env if it doesn't exist
-          if [ ! -f .env ]; then
-            cat > .env << EOF
+          # Create/update .env with secrets
+          cat > .env << EOF
           BASE_API_URL=http://skanderbeg.pm/api.php
           API_PORT=8085
+          ADMIN_DISCORD_ID=${{ secrets.ADMIN_DISCORD_ID }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           EOF
-          fi
           
           # Pull latest image and deploy
           docker compose pull
