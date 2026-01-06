@@ -62,21 +62,30 @@ async def verify_jwt(authorization: str = Header(...)) -> dict:
     Returns:
         JWT payload dict with userId, discordId, roles, etc.
     """
+    if not authorization:
+        logger.error("No Authorization header provided")
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+    
     if not authorization.startswith("Bearer "):
+        logger.error(f"Invalid Authorization header format: {authorization[:20]}...")
         raise HTTPException(status_code=401, detail="Invalid Authorization header")
     
     token = authorization[7:]
     
     try:
+        logger.debug(f"Verifying token: {token[:20]}...")
         public_key = get_public_key()
         payload = jwt.decode(token, public_key, algorithms=["RS256"])
+        logger.info(f"Token verified successfully for user: {payload.get('discordId')}")
         return payload
     except jwt.ExpiredSignatureError:
+        logger.error("Token expired")
         raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError as e:
+        logger.error(f"Invalid token: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
     except Exception as e:
-        logger.error(f"Token verification error: {e}")
+        logger.error(f"Token verification error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Token verification failed")
 
 
