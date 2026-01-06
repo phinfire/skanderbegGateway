@@ -39,6 +39,13 @@ def get_public_key() -> str:
         if not public_key:
             raise ValueError("No public_key in response")
         
+        # Ensure key is in PEM format
+        if not public_key.startswith("-----BEGIN"):
+            logger.warning(f"Public key not in PEM format, attempting to wrap it")
+            # Key might be in JWK or raw format, wrap it
+            public_key = f"-----BEGIN PUBLIC KEY-----\n{public_key}\n-----END PUBLIC KEY-----"
+        
+        logger.debug(f"Public key loaded (first 50 chars): {public_key[:50]}...")
         _public_key_cache = public_key
         _cache_timestamp = datetime.utcnow()
         logger.info("Public key fetched and cached from auth service")
@@ -81,6 +88,9 @@ async def verify_jwt(authorization: str = Header(...)) -> dict:
     except jwt.ExpiredSignatureError:
         logger.error("Token expired")
         raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidAlgorithmError as e:
+        logger.error(f"Algorithm error (key format issue): {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Server configuration error")
     except jwt.InvalidTokenError as e:
         logger.error(f"Invalid token: {e}")
         raise HTTPException(status_code=401, detail="Invalid token")
