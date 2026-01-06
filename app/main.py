@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import hashlib
 import json
@@ -14,6 +15,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Skanderbeg API Gateway with Caching")
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://codingafterdark.de",
+        "http://localhost",
+        "http://127.0.0.1",
+    ],
+    allow_origin_regex=r"http://localhost(:[0-9]+)?",  # Allow localhost on any port
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Initialize database
 init_db()
