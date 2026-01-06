@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import hashlib
 import json
@@ -8,10 +9,35 @@ from datetime import datetime
 import requests
 from pathlib import Path
 
-logging.basicConfig(level=logging.INFO)
+from .savefiles import router as savefiles_router, init_db
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Skanderbeg API Gateway with Caching")
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://codingafterdark.de",
+        "http://localhost",
+        "http://127.0.0.1",
+    ],
+    allow_origin_regex=r"http://localhost(:[0-9]+)?",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize database
+init_db()
+
+# Include savefiles router
+app.include_router(savefiles_router, prefix="/api")
 
 
 BASE_API_URL = os.getenv("BASE_API_URL", "http://skanderbeg.pm/api.php")
