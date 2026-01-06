@@ -11,7 +11,10 @@ from pathlib import Path
 
 from .savefiles import router as savefiles_router, init_db
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Skanderbeg API Gateway with Caching")
@@ -24,10 +27,10 @@ app.add_middleware(
         "http://localhost",
         "http://127.0.0.1",
     ],
-    allow_origin_regex=r"http://localhost(:[0-9]+)?",  # Allow localhost on any port
+    allow_origin_regex=r"http://localhost(:[0-9]+)?",
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods including OPTIONS
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Initialize database
