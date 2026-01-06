@@ -87,7 +87,7 @@ async def upload_savefile(
         savefile = SaveFile(
             id=savefile_id,
             compressed_data=file_data,
-            metadata=metadata_dict
+            file_metadata=metadata_dict
         )
         db.add(savefile)
         db.commit()
