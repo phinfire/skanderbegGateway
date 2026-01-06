@@ -30,6 +30,7 @@ async def list_savefiles(
         return [
             {
                 "id": sf.id,
+                "user_id": sf.user_id,
                 "metadata": sf.file_metadata or {},
                 "created_at": sf.created_at.isoformat(),
                 "updated_at": sf.updated_at.isoformat(),
@@ -71,23 +72,20 @@ async def upload_savefile(
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid metadata JSON")
     
-    # Generate or use provided ID
     savefile_id = id or str(uuid.uuid4())
     
     try:
-        # Read compressed file data
         file_data = await file.read()
         
-        # Check if already exists
         existing = db.query(SaveFile).filter(SaveFile.id == savefile_id).first()
         if existing:
             raise HTTPException(status_code=409, detail=f"Save file with id '{savefile_id}' already exists")
         
-        # Create new save file
         savefile = SaveFile(
             id=savefile_id,
             compressed_data=file_data,
-            file_metadata=metadata_dict
+            file_metadata=metadata_dict,
+            user_id=payload.get("discordId")
         )
         db.add(savefile)
         db.commit()
@@ -132,10 +130,11 @@ async def download_savefile(
         
         return {
             "id": savefile.id,
+            "user_id": savefile.user_id,
             "metadata": savefile.file_metadata or {},
             "created_at": savefile.created_at.isoformat(),
             "updated_at": savefile.updated_at.isoformat(),
-            "compressed_data": savefile.compressed_data.hex(),  # Return as hex string
+            "compressed_data": savefile.compressed_data.hex(),
             "size": len(savefile.compressed_data)
         }
     except HTTPException:
@@ -160,7 +159,6 @@ async def update_savefile(
     - Updates compressed blob
     - Optionally updates metadata
     """
-    # Verify admin
     try:
         payload = await verify_jwt(authorization)
         await require_admin(payload)
@@ -173,11 +171,9 @@ async def update_savefile(
         if not savefile:
             raise HTTPException(status_code=404, detail="Save file not found")
         
-        # Update file data
         file_data = await file.read()
         savefile.compressed_data = file_data
         
-        # Update metadata if provided
         if metadata:
             import json
             try:
@@ -216,7 +212,6 @@ async def delete_savefile(
     
     - Admin only
     """
-    # Verify admin
     try:
         payload = await verify_jwt(authorization)
         await require_admin(payload)

@@ -11,11 +11,9 @@ logger = logging.getLogger(__name__)
 JWT_PUBLIC_KEY_URL = "https://codingafterdark.de/authentication/public-key"
 ADMIN_ID = os.getenv("ADMIN_DISCORD_ID")
 
-# Cache with TTL
 _public_key_cache: Optional[str] = None
 _cache_timestamp: Optional[datetime] = None
 _CACHE_TTL = timedelta(minutes=10)
-
 
 def get_public_key() -> str:
     """
@@ -32,17 +30,14 @@ def get_public_key() -> str:
         response = requests.get(JWT_PUBLIC_KEY_URL, timeout=5)
         response.raise_for_status()
         
-        # Extract public key from response
         data = response.json()
         public_key = data.get("public_key")
         
         if not public_key:
             raise ValueError("No public_key in response")
         
-        # Ensure key is in PEM format
         if not public_key.startswith("-----BEGIN"):
             logger.warning(f"Public key not in PEM format, attempting to wrap it")
-            # Key might be in JWK or raw format, wrap it
             public_key = f"-----BEGIN PUBLIC KEY-----\n{public_key}\n-----END PUBLIC KEY-----"
         
         logger.debug(f"Public key loaded (first 50 chars): {public_key[:50]}...")
@@ -80,7 +75,6 @@ async def verify_jwt(authorization: str = Header(...)) -> dict:
     token = authorization[7:]
     
     try:
-        logger.debug(f"Verifying token: {token[:20]}...")
         public_key = get_public_key()
         payload = jwt.decode(token, public_key, algorithms=["RS256"])
         logger.info(f"Token verified successfully for user: {payload.get('discordId')}")

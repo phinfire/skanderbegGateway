@@ -24,6 +24,7 @@ class SaveFile(Base):
     id = Column(String(255), primary_key=True, index=True)
     compressed_data = Column(LargeBinary, nullable=False)
     file_metadata = Column(JSON, nullable=True)
+    user_id = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
